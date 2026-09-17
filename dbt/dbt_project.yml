@@ -1,0 +1,12 @@
+name: open_revenue
+version: '1.0.0'
+config-version: 2
+profile: open_revenue
+model-paths: [models]
+test-paths: [tests]
+models:
+  open_revenue:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table

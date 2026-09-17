@@ -1,0 +1,10 @@
+{
+  "name": "Open Revenue - internal quality receipt",
+  "active": false,
+  "nodes": [
+    {"parameters": {"httpMethod": "POST", "path": "revenue-quality", "responseMode": "lastNode", "options": {}}, "id": "quality-webhook", "name": "Quality event", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [0, 0], "webhookId": "revenue-quality"},
+    {"parameters": {"jsCode": "const event = $input.first().json.body;\nif (event.pipeline !== 'open_revenue' || event.status !== 'success' || !(event.row_count > 0)) { throw new Error('Invalid quality event'); }\nreturn [{ json: { received: true, pipeline: event.pipeline, row_count: event.row_count, sha256: event.sha256 } }];"}, "id": "validate-event", "name": "Validate receipt", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [260, 0]}
+  ],
+  "connections": {"Quality event": {"main": [[{"node": "Validate receipt", "type": "main", "index": 0}]]}},
+  "settings": {"executionOrder": "v1"}
+}

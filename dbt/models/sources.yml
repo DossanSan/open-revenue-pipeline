@@ -1,0 +1,27 @@
+version: 2
+sources:
+  - name: chicago
+    schema: raw
+    tables:
+      - name: taxi_monthly
+        description: "API aggregates, not individual trips. Grain: Chicago calendar month x payment type."
+        columns:
+          - name: month
+            tests: [not_null]
+          - name: payment_type
+            tests: [not_null]
+models:
+  - name: stg_taxi_monthly
+    description: "All validated loaded months; USD values retain source meaning."
+    columns:
+      - name: month
+        tests: [not_null]
+      - name: payment_type
+        tests: [not_null]
+  - name: monthly_payment_metrics
+    description: "One month x payment type. Amounts include disputes/no charge; not collected revenue."
+  - name: monthly_overview
+    description: "One row per month with source-value coverage and gross recorded trip value."
+    columns:
+      - name: month
+        tests: [not_null, unique]

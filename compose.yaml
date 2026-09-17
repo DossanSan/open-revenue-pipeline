@@ -1,0 +1,51 @@
+# Local learning stack. Airflow standalone is not a production deployment.
+services:
+  postgres:
+    image: postgres:16.6
+    environment:
+      POSTGRES_USER: analytics
+      POSTGRES_DB: analytics
+      POSTGRES_PASSWORD: ${PGPASSWORD:?Set PGPASSWORD in your shell}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - warehouse:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U analytics -d analytics"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  airflow:
+    build: .
+    command: standalone
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/project/airflow/dags
+      PGHOST: postgres
+      PGPORT: '5432'
+      PGDATABASE: analytics
+      PGUSER: analytics
+      PGPASSWORD: ${PGPASSWORD:?Set PGPASSWORD in your shell}
+      N8N_WEBHOOK_URL: ${N8N_WEBHOOK_URL:-}
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - .:/opt/project
+      - airflow_state:/opt/airflow
+    depends_on:
+      postgres:
+        condition: service_healthy
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:${N8N_VERSION:-2.39.6}
+    profiles: [automation]
+    environment:
+      N8N_DIAGNOSTICS_ENABLED: 'false'
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: 'true'
+    ports:
+      - "127.0.0.1:5678:5678"
+    volumes:
+      - n8n_state:/home/node/.n8n
+volumes:
+  warehouse:
+  airflow_state:
+  n8n_state:

@@ -1,0 +1,47 @@
+// Name the imported fact table MonthlyPayments.
+// Create each definition separately in Power BI; this is not an executable DAX query.
+
+Recorded Trip Value USD = SUM(MonthlyPayments[trip_total_usd])
+
+Reported Trips = SUM(MonthlyPayments[trip_count])
+
+Priced Trips = SUM(MonthlyPayments[priced_trip_count])
+
+Average Recorded Trip Value USD =
+    DIVIDE([Recorded Trip Value USD], [Priced Trips])
+
+Amount Coverage = DIVIDE([Priced Trips], [Reported Trips])
+
+Missing Amount Trips = [Reported Trips] - [Priced Trips]
+
+Recorded Fare USD = SUM(MonthlyPayments[fare_usd])
+
+Recorded Tips USD = SUM(MonthlyPayments[tips_usd])
+
+Component Gap USD =
+    [Recorded Trip Value USD]
+    - SUM(MonthlyPayments[fare_usd])
+    - SUM(MonthlyPayments[tips_usd])
+    - SUM(MonthlyPayments[tolls_usd])
+    - SUM(MonthlyPayments[extras_usd])
+
+// New TABLE: mark Calendar as a date table using Calendar[Date].
+// Single direction relationship: Calendar[Date] (1) -> MonthlyPayments[month] (*).
+Calendar =
+ADDCOLUMNS(
+    CALENDAR(MIN(MonthlyPayments[month]), EOMONTH(MAX(MonthlyPayments[month]), 0)),
+    "Year", YEAR([Date]),
+    "MonthStart", DATE(YEAR([Date]), MONTH([Date]), 1),
+    "YearMonth", FORMAT([Date], "yyyy-MM")
+)
+
+Recorded Trip Value Previous Year USD =
+    CALCULATE([Recorded Trip Value USD], DATEADD('Calendar'[Date], -1, YEAR))
+
+Recorded Trip Value YoY Percent =
+    VAR PreviousValue = [Recorded Trip Value Previous Year USD]
+    RETURN IF(
+        ISBLANK(PreviousValue),
+        BLANK(),
+        DIVIDE([Recorded Trip Value USD] - PreviousValue, PreviousValue)
+    )
