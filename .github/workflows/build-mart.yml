@@ -1,0 +1,83 @@
+name: Build and publish validated mart
+on:
+  workflow_dispatch:
+    inputs:
+      refresh_api:
+        description: Re-extract the full 2024-2025 public API window
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency:
+  group: publish-public-mart
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16.6
+        env:
+          POSTGRES_USER: analytics
+          POSTGRES_DB: analytics
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 127.0.0.1:5432:5432
+        options: >-
+          --health-cmd "pg_isready -U analytics -d analytics"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: analytics
+      PGDATABASE: analytics
+      PGPASSWORD: ''
+    steps:
+      - uses: actions/checkout@v4
+      - name: Expand reviewed source archive on first browser upload
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          archive = Path('project-source.zip')
+          if archive.exists():
+              with ZipFile(archive) as bundle:
+                  for member in bundle.infolist():
+                      path = Path(member.filename)
+                      if path.is_absolute() or '..' in path.parts or path.parts[0] in ('.git', '.github', '.venv'):
+                          raise ValueError('Unexpected archive path')
+                  bundle.extractall('.')
+              archive.unlink()
+          PY
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements.txt
+      - run: python -m unittest discover -s tests -v
+      - name: Refresh real API data when requested
+        if: ${{ inputs.refresh_api }}
+        run: python -m pipeline.extract --start 2024-01-01 --end 2026-01-01 --output public/api_snapshot.json
+      - name: Preview, load and verify an idempotent rerun
+        run: |
+          python -m pipeline.load --snapshot public/api_snapshot.json
+          python -m pipeline.load --snapshot public/api_snapshot.json --apply
+          python -m pipeline.load --snapshot public/api_snapshot.json --apply
+      - run: dbt build --project-dir dbt --profiles-dir dbt
+      - run: python -m pipeline.export --output public/dashboard.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: validated-mart-and-dbt-results
+          path: |
+            public/dashboard.json
+            dbt/target/run_results.json
+            dbt/target/manifest.json
+      - name: Publish reviewed source and public aggregate outputs
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add --all -- . ':!.github'
+          if ! git diff --cached --quiet; then
+            git commit -m "Refresh verified public analytics mart"
+            git push
+          fi
