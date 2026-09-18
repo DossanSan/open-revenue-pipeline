@@ -1,5 +1,8 @@
 # Open Revenue Pipeline — Chicago Taxi Analytics
 
+[Open the live dashboard](https://dossansan-open-revenue.streamlit.app/)
+· [Verified PostgreSQL/dbt run](https://github.com/DossanSan/open-revenue-pipeline/actions/runs/35224315837)
+
 A portfolio project using **real public API data** to demonstrate Python ingestion,
 PostgreSQL loading, dbt modelling, Airflow orchestration, optional n8n integration,
 and a Streamlit dashboard. No synthetic business data or personal trip records.
@@ -28,8 +31,13 @@ flowchart LR
   loader with SELECT preview, dbt models/tests, Airflow DAG, n8n workflow, Docker
   configuration, Streamlit dashboard and optional Power Query/DAX source.
 - Verified locally: see `docs/verification.md` for actual evidence and limitations.
-- Pending: full stack execution (Docker unavailable in authoring environment),
-  GitHub remote publication and public Streamlit deployment.
+- Passed in [GitHub Actions](https://github.com/DossanSan/open-revenue-pipeline/actions/runs/35224315837):
+  PostgreSQL load/rerun, dbt build/tests and publication of the dashboard export.
+- Published: [GitHub repository](https://github.com/DossanSan/open-revenue-pipeline).
+- Published: [Streamlit dashboard](https://dossansan-open-revenue.streamlit.app/),
+  using the verified dbt export. Three pages and interactive filters are available.
+- Pending: Airflow/n8n runtime checks; their configuration is included but is not
+  evidence of an executed production deployment.
 - **Not a production deployment:** Airflow standalone is a local learning setup.
 
 ## Source and scope
