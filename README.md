@@ -135,9 +135,6 @@ binary report caches are ignored. Only reviewed aggregate snapshots in `public/`
 are published. Include a source attribution and a public report
 link only after verifying it in a signed-out browser.
 
-## Learn the project
-
-[Пошаговый разбор на русском](docs/learning_path_ru.md).
 
 ## Engineering decisions
 
