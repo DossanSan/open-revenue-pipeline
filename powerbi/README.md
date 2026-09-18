@@ -6,7 +6,7 @@ been built or validated. No report has been published to Power BI Service.
 ## Build in Power BI Desktop
 
 1. Use a Windows machine (Desktop has no native macOS version).
-2. Complete PostgreSQL load, `dbt build`, and `pipeline.export` first. The final
+2. Complete PostgreSQL load, `dbt build`, and `pipeline.export --output exports/powerbi.json` first. The final
    report must read the dbt result at `exports/powerbi.json`, not bypass dbt.
    The API snapshot can be used temporarily for exploration, clearly labelled.
 3. In Transform data, create a Text parameter `DataFilePath` with the local JSON

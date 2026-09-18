@@ -1,5 +1,7 @@
 # Streamlit dashboard
 
+Live report: https://dossansan-open-revenue.streamlit.app/
+
 Primary report destination, replacing Power BI for a Mac-friendly, license-free demo.
 Streamlit Community Cloud offers free app hosting linked to GitHub:
 https://docs.streamlit.io/deploy/streamlit-community-cloud

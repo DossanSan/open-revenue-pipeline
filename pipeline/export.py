@@ -29,6 +29,6 @@ def export(output):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output", default="exports/powerbi.json")
+    parser.add_argument("--output", default="public/dashboard.json")
     args = parser.parse_args()
     export(args.output)
